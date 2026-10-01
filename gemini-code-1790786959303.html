@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SETLAND - E-Learning Himpunan SMP</title>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --green-light: #e8f5e9;
+            --green-medium: #a5d6a7;
+            --green-primary: #2e7d32;
+            --green-dark: #1b5e20;
+            --pink-light: #fce4ec;
+            --pink-medium: #f48fb1;
+            --pink-primary: #c2185b;
+            --pink-dark: #880e4f;
+            --white: #ffffff;
+            --gray-light: #f8f9fa;
+            --gray-text: #555555;
+            --shadow: 0 8px 20px rgba(0,0,0,0.06);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f4f8f5;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar & Header */
+        header {
+            background: linear-gradient(135deg, var(--green-primary), #388e3c);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: white;
+        }
+
+        .brand span {
+            color: var(--pink-medium);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notification-wrapper {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .bell-icon {
+            font-size: 1.4rem;
+            color: white;
+            transition: transform 0.2s;
+        }
+
+        .bell-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* Indikator Titik Lonceng: Merah (Belum dibaca), Hijau (Sudah dibaca) */
+        .status-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid white;
+            background-color: #e53935; /* Default merah */
+        }
+
+        .status-dot.read {
+            background-color: #4caf50 !important; /* Hijau saat dibaca */
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            right: 0;
+            top: 35px;
+            width: 320px;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+
+        .notification-dropdown.active {
+            display: flex;
+        }
+
+        .notif-header {
+            background: var(--pink-light);
+            color: var(--pink-primary);
+            padding: 10px 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notif-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .notif-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.85rem;
+            color: #444;
+            transition: background 0.2s;
+        }
+
+        .notif-item:hover {
+            background: var(--green-light);
+        }
+
+        .user-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-logout {
+            background: var(--pink-primary);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: var(--pink-dark);
+        }
+
+        /* Layout Container */
+        .app-container {
+            display: flex;
+            flex: 1;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--pink-primary);
+            font-weight: 700;
+            margin: 15px 0 5px 10px;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            color: var(--gray-text);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--green-light);
+            color: var(--green-primary);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(90deg, var(--green-light), var(--pink-light));
+            color: var(--green-primary);
+            font-weight: 600;
+            border-left: 4px solid var(--pink-primary);
+        }
+
+        /* Main Content View */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, var(--green-light), var(--pink-light));
+            border-radius: var(--radius);
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border-left: 6px solid var(--green-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .welcome-card h2 {
+            color: var(--green-primary);
+            margin-bottom: 5px;
+        }
+
+        .welcome-card p {
+            color: var(--pink-dark);
+            font-weight: 500;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid #f0f0f0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .icon-green { background: var(--green-light); color: var(--green-primary); }
+        .icon-pink { background: var(--pink-light); color: var(--pink-primary); }
+
+        .lock-badge {
+            background: #ffebee;
+            color: #c62828;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .unlock-badge {
+            background: var(--green-light);
+            color: var(--green-primary);
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+
+        /* Buttons & Controls */
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary { background: var(--green-primary); color: white; }
+        .btn-primary:hover { background: var(--green-dark); }
+        .btn-secondary { background: var(--pink-primary); color: white; }
+        .btn-secondary:hover { background: var(--pink-dark); }
+        .btn-outline { background: transparent; border: 2px solid var(--green-primary); color: var(--green-primary); }
+        .btn-outline:hover { background: var(--green-light); }
+        .btn:disabled { background: #ccc !important; cursor: not-allowed; border-color: #ccc !important; }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-top: 1rem;
+        }
+
+        .data-table th, .data-table td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+        }
+
+        .data-table th {
+            background: var(--green-light);
+            color: var(--green-dark);
+            font-weight: 600;
+        }
+
+        .data-table tr:hover {
+            background: #fafafa;
+        }
+
+        /* Auth Screen */
+        .auth-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        .auth-card {
+            background: white;
+            width: 440px;
+            max-width: 90%;
+            border-radius: var(--radius);
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            border-top: 6px solid var(--pink-primary);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h1 {
+            color: var(--green-primary);
+            font-size: 2rem;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+            background: #f0f0f0;
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .role-btn.active {
+            background: white;
+            color: var(--pink-primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #444;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--green-primary);
+        }
+
+        /* Task & Cheat Warning Bar */
+        .cheat-alert {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-body {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--radius);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        /* Camera Box */
+        .camera-box {
+            background: #222;
+            width: 100%;
+            height: 220px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .camera-box video, .camera-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Scaffolding Crosscheck Box */
+        .scaffold-box {
+            background: var(--green-light);
+            border-left: 4px solid var(--green-primary);
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 10px;
+            font-size: 0.88rem;
+            color: var(--green-dark);
+        }
+
+        .scaffold-box.error-scaffold {
+            background: var(--pink-light);
+            border-left-color: var(--pink-primary);
+            color: var(--pink-dark);
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navbar -->
+    <header id="mainHeader">
+        <div class="brand">
+            <i class="fa-solid fa-shapes"></i> SET<span>LAND</span>
+        </div>
+        <div class="nav-right" id="navRight" style="display: none;">
+            <!-- Lonceng Notifikasi Siswa -->
+            <div class="notification-wrapper" id="notifWrapper" onclick="toggleNotifications()">
+                <i class="fa-solid fa-bell bell-icon"></i>
+                <div class="status-dot" id="bellDot"></div>
+                <div class="notification-dropdown" id="notifDropdown">
+                    <div class="notif-header">
+                        <span><i class="fa-solid fa-bullhorn"></i> Pengumuman & Info</span>
+                        <small onclick="clearNotifDot(event)" style="cursor:pointer; color:var(--pink-primary);">Tandai dibaca</small>
+                    </div>
+                    <div class="notif-list" id="notifList">
+                        <!-- Notifikasi diisi JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-badge" id="userBadge">
+                <i class="fa-solid fa-user-circle"></i> <span id="userNameDisplay">User</span>
+            </div>
+            <button class="btn-logout" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+        </div>
+    </header>
+
+    <!-- Main Container Layout -->
+    <div class="app-container" id="appLayout" style="display: none;">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebarNav">
+            <!-- Diisi secara dinamis oleh JavaScript berdasarkan Role (Siswa / Guru / Admin) -->
+        </aside>
+
+        <!-- Main View Area -->
+        <main class="main-content" id="mainView">
+            <!-- View Content diisi secara dinamis -->
+        </main>
+    </div>
+
+    <!-- Auth Overlay (Modal Login & Registrasi) -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>SET<span>LAND</span></h1>
+                <p style="font-size: 0.85rem; color:#666;">Media Pembelajaran E-Learning Himpunan SMP</p>
+            </div>
+
+            <div class="role-selector">
+                <button class="role-btn active" onclick="selectRole('siswa')" id="roleBtnSiswa">Siswa</button>
+                <button class="role-btn" onclick="selectRole('guru')" id="roleBtnGuru">Guru</button>
+                <button class="role-btn" onclick="selectRole('admin')" id="roleBtnAdmin">Admin</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="nama@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Kata Sandi</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="******" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Masuk Aplikasi</button>
+                <p style="text-align: center; margin-top: 15px; font-size:0.85rem;" id="regHelpText">
+                    Belum punya akun? <a href="#" onclick="toggleAuthMode('register')" style="color:var(--pink-primary); font-weight:600;">Registrasi dulu</a>
+                </p>
+            </form>
+
+            <!-- Register Form -->
+            <form id="registerForm" class="hidden" onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="regName" class="form-control" placeholder="Nama Lengkap" required>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal / Bulan / Tahun Lahir</label>
+                    <input type="date" id="regDob" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Jenis Kelamin</label>
+                    <select id="regGender" class="form-control" required>
+                        <option value="">-- Pilih Jenis Kelamin --</option>
+                        <option value="Laki-laki">Laki-laki</option>
+                        <option value="Perempuan">Perempuan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" class="form-control" placeholder="nama@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Kata Sandi</label>
+                    <input type="password" id="regPassword" class="form-control" placeholder="******" required>
+                </div>
+                <div class="form-group">
+                    <label>Konfirmasi Kata Sandi</label>
+                    <input type="password" id="regPasswordConfirm" class="form-control" placeholder="******" required>
+                </div>
+                <button type="submit" class="btn btn-secondary" style="width: 100%;">Daftar Sekarang</button>
+                <p style="text-align: center; margin-top: 15px; font-size:0.85rem;">
+                    Sudah punya akun? <a href="#" onclick="toggleAuthMode('login')" style="color:var(--green-primary); font-weight:600;">Login</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Submission Modal -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-body">
+            <i class="fa-solid fa-circle-question" style="font-size: 3rem; color: var(--pink-primary); margin-bottom: 15px;"></i>
+            <h3>Konfirmasi Pengiriman</h3>
+            <p style="margin: 15px 0; color:#555;" id="confirmModalText">Apakah Anda sudah yakin dengan jawaban Anda?</p>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="submitTaskFinal(true)">Ya, Saya Yakin</button>
+                <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Tidak, Cek Lagi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Camera Attachment Modal -->
+    <div class="modal" id="cameraModal">
+        <div class="modal-body" style="max-width: 550px;">
+            <h3><i class="fa-solid fa-camera"></i> Ambil Foto Jawaban</h3>
+            <p style="font-size:0.8rem; color:#666; margin-top:5px;">Foto lembar pengerjaan Anda. Membuka kamera <strong>TIDAK</strong> terdeteksi sebagai kecurangan.</p>
+            
+            <div class="camera-box" id="cameraBox">
+                <video id="webcamVideo" autoplay playsinline></video>
+                <img id="photoPreview" class="hidden" alt="Preview Foto">
+            </div>
+
+            <canvas id="photoCanvas" class="hidden"></canvas>
+
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                <button class="btn btn-primary" onclick="capturePhoto()" id="btnCapture"><i class="fa-solid fa-camera-retro"></i> Jepret Foto</button>
+                <button class="btn btn-outline hidden" onclick="retakePhoto()" id="btnRetake"><i class="fa-solid fa-rotate-left"></i> Foto Ulang</button>
+                <button class="btn btn-secondary" onclick="useCapturedPhoto()" id="btnUsePhoto" disabled><i class="fa-solid fa-check"></i> Gunakan Foto Ini</button>
+                <button class="btn btn-outline" onclick="closeCameraModal()">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hubungkan Script JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
